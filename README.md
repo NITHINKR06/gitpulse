@@ -1,6 +1,6 @@
 # GitPulse 🔍
 
-A Spring Boot REST API that aggregates GitHub profile data — repositories, stars, language breakdown, and top projects — and renders it as a clean visual profile card.
+A Spring Boot REST API that aggregates GitHub profile data repositories, stars, language breakdown, and top projects and renders it as a clean visual profile card.
 
 ---
 
