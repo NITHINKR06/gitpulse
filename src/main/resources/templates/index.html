@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>GitPulse</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #0d1117; color: #c9d1d9; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .container { text-align: center; }
+        .logo { font-size: 48px; font-weight: bold; color: #58a6ff; margin-bottom: 12px; }
+        .tagline { font-size: 16px; color: #8b949e; margin-bottom: 40px; }
+        .search-box { display: flex; gap: 10px; justify-content: center; }
+        input { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px 20px; font-size: 16px; color: #c9d1d9; width: 320px; outline: none; }
+        input:focus { border-color: #58a6ff; }
+        input::placeholder { color: #484f58; }
+        button { background: #238636; border: none; border-radius: 8px; padding: 12px 24px; font-size: 16px; color: white; cursor: pointer; font-weight: 500; }
+        button:hover { background: #2ea043; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="logo">GitPulse</div>
+    <p class="tagline">Enter a GitHub username to view their profile</p>
+    <div class="search-box">
+        <input type="text" id="username" placeholder="e.g. NITHINKR06" autofocus/>
+        <button onclick="search()">Search</button>
+    </div>
+</div>
+
+<script>
+    function search() {
+        const username = document.getElementById('username').value.trim();
+        if (username) {
+            window.location.href = '/profile/' + username;
+        }
+    }
+
+    document.getElementById('username').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') search();
+    });
+</script>
+</body>
+</html>

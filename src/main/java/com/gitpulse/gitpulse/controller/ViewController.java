@@ -18,4 +18,9 @@ public class ViewController {
         model.addAttribute("profile", gitHubService.buildProfile(username));
         return "profile";
     }
+
+    @GetMapping("/")
+    public String home() {
+        return "index";
+    }
 }
