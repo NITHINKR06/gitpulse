@@ -1,18 +1,48 @@
+<div align="center">
+
 # GitPulse 🔍
 
-A Spring Boot REST API that aggregates GitHub profile data repositories, stars, language breakdown, and top projects and renders it as a clean visual profile card.
+**A Spring Boot REST API that transforms any GitHub username into a rich developer profile card — with live stats, language analytics, async processing, and Redis caching.**
+
+[![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square&logo=java)](https://www.java.com)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?style=flat-square&logo=springboot)](https://spring.io/projects/spring-boot)
+[![Redis](https://img.shields.io/badge/Redis-Caching-red?style=flat-square&logo=redis)](https://redis.io)
+[![GitHub API](https://img.shields.io/badge/GitHub-REST%20API%20v3-black?style=flat-square&logo=github)](https://docs.github.com/en/rest)
+[![Docker](https://img.shields.io/badge/Docker-Compose-blue?style=flat-square&logo=docker)](https://www.docker.com)
+[![License](https://img.shields.io/badge/License-MIT-yellow?style=flat-square)](LICENSE)
+
+[Live Demo](#) · [API Docs](#api-endpoints) · [Report Bug](https://github.com/NITHINKR06/gitpulse/issues)
+
+![GitPulse Preview](https://via.placeholder.com/900x400/0d1117/58a6ff?text=GitPulse+Profile+Card)
+
+</div>
+
+---
+
+## What is GitPulse?
+
+GitPulse hits the GitHub REST API, processes raw data through a stats engine, and returns a clean structured profile — available as both a **JSON API** and a **visual HTML card**. It's not a CRUD app. It's a tool developers actually use.
+
+Built to demonstrate:
+- Real-world API integration with rate limit handling via Redis cache
+- Async processing with `@Async` + `CompletableFuture`
+- Layered Spring Boot architecture (Controller → Service → Client → DTO)
+- Docker + Docker Compose deployment
 
 ---
 
 ## Features
 
-- Search any GitHub username from a home page
-- REST API returning structured JSON profile data
-- Language usage breakdown with percentages
-- Top 5 repositories ranked by stars
-- Total stars, forks, followers, and repo count
-- Dark-themed Thymeleaf profile card UI
-- Clean error handling for invalid usernames
+- 🔎 **Username search** — home page with instant routing to profile
+- 📊 **Language analytics** — percentage breakdown across all public repos
+- ⭐ **Stats aggregation** — total stars, forks, followers, original repo count
+- 🏆 **Top repositories** — top 5 ranked by stars, excluding forks
+- 🧠 **Most used language** — detected automatically from repo data
+- ⚡ **Async processing** — repo fetch runs on a separate thread via `@Async`
+- 🗄️ **Redis caching** — profiles cached for 10 minutes, prevents API rate limits
+- 🎨 **Dark UI profile card** — Thymeleaf-rendered, GitHub-styled
+- 🐳 **Docker ready** — single command to spin up app + Redis
+- 🔒 **Secure by default** — token stored in `.env`, never committed
 
 ---
 
@@ -20,13 +50,42 @@ A Spring Boot REST API that aggregates GitHub profile data repositories, stars, 
 
 | Layer | Technology |
 |---|---|
-| Backend | Java 17, Spring Boot 3.5 |
+| Language | Java 17 |
+| Framework | Spring Boot 3.5 |
 | HTTP Client | Spring WebFlux WebClient |
-| View | Thymeleaf |
-| Build | Maven |
-| API | GitHub REST API v3 |
+| Async | `@Async` + `CompletableFuture` |
+| Caching | Redis + Spring Cache (`@Cacheable`) |
+| View Layer | Thymeleaf |
+| Build Tool | Maven |
+| External API | GitHub REST API v3 |
 | Auth | GitHub Personal Access Token |
-| Env | spring-dotenv |
+| Environment | spring-dotenv |
+| Containerization | Docker + Docker Compose |
+
+---
+
+## Architecture
+
+```
+Client Request
+      │
+      ▼
+ProfileController          ← REST endpoints + exception handler
+      │
+      ▼
+GitHubService              ← orchestrates calls, builds ProfileDTO
+  ├── @Async fetchRepos()  ← runs on separate thread pool
+  └── @Cacheable           ← Redis cache hit skips API call
+      │
+      ▼
+GitHubClient               ← WebClient wrapper, calls GitHub API
+      │
+      ▼
+StatsService               ← processes raw repos into analytics
+      │
+      ▼
+ProfileDTO                 ← clean response shape returned to client
+```
 
 ---
 
@@ -35,27 +94,28 @@ A Spring Boot REST API that aggregates GitHub profile data repositories, stars, 
 ```
 src/main/java/com/gitpulse/gitpulse/
 ├── config/
-│   └── WebClientConfig.java       # WebClient bean with GitHub auth headers
+│   ├── WebClientConfig.java       # WebClient bean with GitHub auth headers
+│   └── RedisConfig.java           # Redis cache manager with TTL config
 ├── controller/
-│   ├── ProfileController.java     # REST API endpoints
+│   ├── ProfileController.java     # REST API endpoints + error handler
 │   └── ViewController.java        # Thymeleaf HTML routes
 ├── service/
-│   ├── GitHubService.java         # Orchestrates API calls and builds ProfileDTO
-│   └── StatsService.java          # Processes stars, forks, language percentages
+│   ├── GitHubService.java         # Async orchestration + cache layer
+│   └── StatsService.java          # Stars, forks, language %, streak stats
 ├── client/
-│   └── GitHubClient.java          # WebClient wrapper for GitHub API calls
+│   └── GitHubClient.java          # WebClient calls to GitHub REST API
 ├── dto/
-│   ├── GithubUserDTO.java         # Maps raw GitHub /users/{username} response
+│   ├── GithubUserDTO.java         # Maps raw GitHub /users/{username}
 │   ├── RepoDTO.java               # Maps each repository object
 │   └── ProfileDTO.java            # Final clean response shape
 └── exception/
-    └── UserNotFoundException.java # Custom 404 exception
+    └── UserNotFoundException.java # Custom 404 with clean error JSON
 
 src/main/resources/
 ├── application.properties
 └── templates/
     ├── index.html                 # Search home page
-    └── profile.html              # Visual profile card
+    └── profile.html               # Dark-themed profile card UI
 ```
 
 ---
@@ -64,12 +124,46 @@ src/main/resources/
 
 | Method | Endpoint | Description |
 |---|---|---|
-| GET | `/api/profile/{username}` | Full profile JSON |
-| GET | `/api/profile/{username}/stats` | Stars, forks, repos, followers |
-| GET | `/api/profile/{username}/languages` | Language percentage map |
-| GET | `/api/profile/{username}/repos` | Top 5 repos by stars |
-| GET | `/profile/{username}` | HTML profile card (Thymeleaf) |
-| GET | `/` | Search home page |
+| `GET` | `/` | Search home page |
+| `GET` | `/profile/{username}` | HTML profile card |
+| `GET` | `/api/profile/{username}` | Full profile JSON |
+| `GET` | `/api/profile/{username}/stats` | Stars, forks, repos, followers |
+| `GET` | `/api/profile/{username}/languages` | Language percentage map |
+| `GET` | `/api/profile/{username}/repos` | Top 5 repos by stars |
+
+### Example Response — `/api/profile/NITHINKR06`
+
+```json
+{
+  "username": "NITHINKR06",
+  "name": null,
+  "bio": "NMAMIT'27 | CyberSecurity | Full Stack developer",
+  "avatarUrl": "https://avatars.githubusercontent.com/u/146012853",
+  "githubUrl": "https://github.com/NITHINKR06",
+  "totalRepos": 86,
+  "followers": 27,
+  "totalStars": 61,
+  "totalForks": 4,
+  "originalRepos": 74,
+  "mostUsedLanguage": "JavaScript",
+  "topRepos": [
+    {
+      "name": "Hotel-room-booking-website",
+      "language": "HTML",
+      "stargazers_count": 2,
+      "forks_count": 0
+    }
+  ],
+  "languagePercentages": {
+    "JavaScript": 35.2,
+    "TypeScript": 31.0,
+    "Python": 12.7,
+    "Java": 8.5,
+    "HTML": 9.9,
+    "Jupyter Notebook": 2.8
+  }
+}
+```
 
 ---
 
@@ -79,84 +173,103 @@ src/main/resources/
 
 - Java 17+
 - Maven
-- GitHub Personal Access Token ([generate here](https://github.com/settings/tokens))
+- Docker (for Redis)
+- GitHub Personal Access Token → [Generate here](https://github.com/settings/tokens) with `public_repo` scope only
 
-### Setup
+---
 
-**1. Clone the repo**
+### Option A — Run with Docker Compose (recommended)
+
 ```bash
+# 1. Clone
 git clone https://github.com/NITHINKR06/gitpulse.git
 cd gitpulse
+
+# 2. Create .env file
+echo "GITHUB_API_TOKEN=ghp_your_token_here" > .env
+
+# 3. Run everything
+docker-compose up --build
 ```
 
-**2. Create a `.env` file in the project root**
-```
-GITHUB_API_TOKEN=ghp_your_token_here
-```
+App runs at `http://localhost:8080` — Redis starts automatically.
 
-**3. Set `application.properties`**
-```properties
-spring.application.name=gitpulse
-server.port=8080
-github.api.base-url=https://api.github.com
-github.api.token=${GITHUB_API_TOKEN}
-```
+---
 
-**4. Run the app**
+### Option B — Run locally
+
 ```bash
-./mvnw spring-boot:run
-```
+# 1. Clone
+git clone https://github.com/NITHINKR06/gitpulse.git
+cd gitpulse
 
-**5. Open in browser**
-```
+# 2. Create .env at project root
+GITHUB_API_TOKEN=ghp_your_token_here
+
+# 3. Start Redis (Docker)
+docker run -d -p 6379:6379 redis
+
+# 4. Run the app
+./mvnw spring-boot:run
+
+# 5. Open
 http://localhost:8080
 ```
 
 ---
 
-## Usage
+### `application.properties` reference
 
-1. Go to `http://localhost:8080`
-2. Type any GitHub username and press Enter
-3. View the profile card at `http://localhost:8080/profile/{username}`
-4. Or hit the JSON API at `http://localhost:8080/api/profile/{username}`
+```properties
+spring.application.name=gitpulse
+server.port=8080
 
-### Example Response
+github.api.base-url=https://api.github.com
+github.api.token=${GITHUB_API_TOKEN}
 
-```json
-{
-  "username": "NITHINKR06",
-  "bio": "NMAMIT'27 | CyberSecurity | Full Stack developer",
-  "totalRepos": 86,
-  "followers": 27,
-  "totalStars": 61,
-  "totalForks": 4,
-  "topRepos": [...],
-  "languagePercentages": {
-    "JavaScript": 35.2,
-    "TypeScript": 31.0,
-    "Python": 12.7,
-    "Java": 8.5,
-    "HTML": 9.9
-  }
-}
+spring.cache.type=redis
+spring.data.redis.host=localhost
+spring.data.redis.port=6379
+spring.cache.redis.time-to-live=600000
 ```
 
 ---
 
-## Security Note
+## How Caching Works
 
-Never commit your `.env` or `application.properties` files. Both are listed in `.gitignore`. Your GitHub token should only have `public_repo` scope.
+First request to `/api/profile/NITHINKR06`:
+```
+Request → GitHubService → GitHub API (live call) → Redis stores result → Response
+```
+
+Any request within 10 minutes:
+```
+Request → GitHubService → Redis cache hit → Response (no GitHub API call)
+```
+
+This prevents hitting GitHub's 5000 req/hour rate limit on repeated lookups.
+
+---
+
+## Security
+
+- GitHub token stored in `.env` — never committed
+- `.gitignore` excludes both `.env` and `application.properties`
+- Token scope limited to `public_repo` only
+- No user data stored — all processing is stateless
 
 ---
 
 ## Author
 
-**Nithin K R**  
-GitHub: [@NITHINKR06](https://github.com/NITHINKR06)
+**Nithin K R**
+B.Tech Cybersecurity · NMAMIT, Nitte (2027)
+Technical Lead @ CSI NMAMIT
+
+[![GitHub](https://img.shields.io/badge/GitHub-NITHINKR06-black?style=flat-square&logo=github)](https://github.com/NITHINKR06)
 
 ---
 
 ## License
 
-MIT
+MIT © 2026 Nithin K R
