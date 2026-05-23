@@ -21,6 +21,22 @@ public class StatsService {
                 .sum();
     }
 
+    public String mostUsedLanguage(List<RepoDTO> repos) {
+        return repos.stream()
+                .filter(r -> r.getLanguage() != null)
+                .collect(Collectors.groupingBy(RepoDTO::getLanguage, Collectors.counting()))
+                .entrySet().stream()
+                .max(Map.Entry.comparingByValue())
+                .map(Map.Entry::getKey)
+                .orElse("N/A");
+    }
+
+    public int originalRepoCount(List<RepoDTO> repos) {
+        return (int) repos.stream()
+                .filter(r -> !r.isFork())
+                .count();
+    }
+
     public List<RepoDTO> topRepos(List<RepoDTO> repos) {
         return repos.stream()
                 .filter(r -> !r.isFork())

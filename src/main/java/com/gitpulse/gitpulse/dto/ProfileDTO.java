@@ -19,4 +19,6 @@ public class ProfileDTO {
     private int totalForks;
     private List<RepoDTO> topRepos;
     private Map<String, Double> languagePercentages;
+    private String mostUsedLanguage;
+    private int originalRepos;
 }
