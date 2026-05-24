@@ -1,3 +1,5 @@
+#Just to run redis can skip run locally without docker it works
+
 version: '3.8'
 services:
   redis:
