@@ -13,7 +13,10 @@
 
 [Live Demo](#) · [API Docs](#api-endpoints) · [Report Bug](https://github.com/NITHINKR06/gitpulse/issues)
 
-![GitPulse Preview](https://via.placeholder.com/900x400/0d1117/58a6ff?text=GitPulse+Profile+Card)
+<p align="center">
+  <img src="/public/gitplus-dashboard.jpeg" width="45%" />
+  <img src="/public/profile.jpeg" width="45%" />
+</p>
 
 </div>
 
