@@ -2,7 +2,7 @@
 
 # GitPulse 🔍
 
-**A Spring Boot REST API that transforms any GitHub username into a rich developer profile card — with live stats, language analytics, async processing, and Redis caching.**
+**A Spring Boot REST API that transforms any GitHub username into a rich developer profile card with live stats, language analytics, async processing, and Redis caching.**
 
 [![Java](https://img.shields.io/badge/Java-17-orange?style=flat-square&logo=java)](https://www.java.com)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen?style=flat-square&logo=springboot)](https://spring.io/projects/spring-boot)
@@ -70,7 +70,7 @@ Built to demonstrate:
 ## Architecture
 
 ```
-Client Request
+Client Request (git-username)
       │
       ▼
 ProfileController          ← REST endpoints + exception handler
